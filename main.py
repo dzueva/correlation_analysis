@@ -1,59 +1,48 @@
 #!/usr/bin/python3
 import pandas as pd
-import numpy as np
-
-
-def coeff_meaning(r: float):
-    """Интерпретация значения коэффициента Пирсона"""
-    if r == 0:
-        print("Нет линейной связи между переменными")
-    elif 0 < r < 0.3:
-        print("Слабая положительная линейная связь между переменными")
-    elif 0.3 <= r < 0.5:
-        print("Умеренная положительная линейная связь между переменными")
-    elif 0.5 <= r < 0.7:
-        print("Заметная положительная линейная связь между переменными")
-    elif 0.7 <= r < 0.9:
-        print("Высокая положительная линейная связь между переменными")
-    elif 0.9 <= r <= 1:
-        print("Очень высокая положительная линейная связь между переменными")
-    elif 0 > r > -0.3:
-        print("Умеренная отрицательная линейная связь между переменными")
-    elif -0.3 >= r > -0.5:
-        print("Заметная отрицательная линейная связь между переменными")
-    elif -0.5 >= r > -0.7:
-        print("Высокая отрицательная линейная связь между переменными")
-    elif -0.7 >= r > -0.9:
-        print("Очень высокая отрицательная линейная связь между переменными")
-    elif -0.9 >= r >= -1:
-        print("Полная отрицательная линейная связь между переменными")
-
-
-def formatting(_data: str):
-    """Обработка введенных данных"""
-    result_list = _data.split()
-    for i in range(len(result_list)):
-        result_list[i] = float(result_list[i])
-    return result_list
+from tabulate import tabulate
 
 
 if __name__ == '__main__':
-    data_first_name = input('Введите описание первого набора данных (например: "Количество чашек кофе в день"): ')
-    data_second_name = input('Введите описание второго набора данных (например: "Производительность"): ')
+    data = {
+        'Потребитель 1': [5, 2, 10, 7],
+        'Потребитель 2': [4, 3, 8, 6],
+        'Потребитель 3': [3, 1, 5, 4],
+        'Потребитель 4': [6, 2, 12, 8],
+        'Потребитель 5': [5, 4, 9, 5],
+        'Общий бюджет': [30, 12, 44, 30],
+    }
+    indexes = ['Молоко', 'Хлеб', 'Мясо', 'Фрукты']
+    additional_data = {'Дети': [2, 0, 1, 3, 0]}
+    col_names = ['']
+    for key in data.keys():
+        col_names.append(key)
+    table_data = []
+    for index in range(len(indexes)):
+        raw = [indexes[index]]
+        for key, value in data.items():
+            raw.append(value[index])
+        table_data.append(raw)
 
-    data_first_input = formatting(input('Введите набор данных для первой переменной (в виде списка чисел, разделяя элементы пробелами): '))
-    data_second_input = formatting(input('Введите набор данных для второй переменной (в виде списка чисел, разделяя элементы пробелами): '))
+    print(tabulate(table_data, headers=col_names, tablefmt="fancy_grid"))
+    print('')
 
-    # Создание набора данных
-    data = {data_first_name: data_first_input,
-            data_second_name: data_second_input}
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data, index=indexes)
+    additional_name = list(additional_data.keys())[0]
+    # Рассчитываем среднее количество детей на каждого потребителя
+    df[additional_name] = additional_data.get(additional_name)
 
-    # Описательная статистика
-    print(df.describe())
+    # Разделяем таблицу на две группы - семьи с детьми и без детей
+    with_kids = df[df[additional_name] > 0]
+    no_kids = df[df[additional_name] == 0]
 
-    # Рассчитываем коэффициент корреляции Пирсона
-    corr = np.corrcoef(df[data_first_name], df[data_second_name])[0, 1]
-    print("Коэффициент корреляции Пирсона: ", corr)
-    coeff_meaning(corr)
+    # Считаем средние значения расходов каждой группы на каждую категорию продуктов питания
+    with_kids_means = with_kids.mean()
+    no_kids_means = no_kids.mean()
 
+    # Выводим результаты анализа данных
+    print("Средние значения расходов на неделю для семей с детьми:")
+    print(with_kids_means)
+    print('')
+    print("Средние значения расходов на неделю для семей без детей:")
+    print(no_kids_means)
